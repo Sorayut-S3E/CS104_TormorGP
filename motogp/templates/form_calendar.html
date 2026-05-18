@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Calendar — MotoGP Universe{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="section-header">
+    <h1>📅 {{ action }} Calendar</h1>
+    <div class="bar"></div>
+    <a href="/calendar" class="btn btn-edit">← กลับ</a>
+  </div>
+  <div class="form-card">
+    <form method="POST">
+      <div class="form-group">
+        <label>Date (วันที่แข่ง)</label>
+        <input type="date" name="date" value="{{ data.date if data else '' }}" required>
+      </div>
+      <div class="form-group">
+        <label>Track (สนาม)</label>
+        <select name="track_id" required>
+          <option value="">-- เลือกสนาม --</option>
+          {% for t in tracks %}
+          <option value="{{ t.id }}" {% if data and data.track_id == t.id %}selected{% endif %}>{{ t.track }} ({{ t.country }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Ticket Price (USD)</label>
+        <input type="number" step="0.01" name="ticket" value="{{ data.ticket if data else '' }}" placeholder="150.00">
+      </div>
+      <div class="form-group">
+        <label>Riders (นักขับที่เข้าร่วม)</label>
+        <input type="text" name="rider" value="{{ data.rider if data else '' }}" placeholder="เช่น Bagnaia / Martin / Marquez">
+      </div>
+      <button type="submit" class="btn btn-primary">💾 บันทึก</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

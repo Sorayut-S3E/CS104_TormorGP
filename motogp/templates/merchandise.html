@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Merchandise — MotoGP Universe{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="section-header">
+    <h1>🛍️ Merchandise</h1>
+    <div class="bar"></div>
+    <a href="/merchandise/add" class="btn btn-primary">+ เพิ่มสินค้า</a>
+  </div>
+
+  <div class="cards-grid">
+    {% for m in merch %}
+    <div class="card">
+      <div class="card-title">{{ m.team }}</div>
+      <div style="margin: 1rem 0; display:grid; grid-template-columns:1fr 1fr; gap:0.75rem">
+        <div style="background:var(--dark4); border-radius:6px; padding:0.75rem; text-align:center">
+          <!-- เปลี่ยนจาก emoji เป็นรูปจริง -->
+          <img src="https://via.placeholder.com/80/1a1a1a/ffc107?text=🧥" alt="Coat" style="width:80px; height:80px; object-fit:cover; border-radius:4px">
+          <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.2rem; color:var(--gold)">${{ '%.2f'|format(m.coat) }}</div>
+          <div style="font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px">Coat</div>
+        </div>
+        <div style="background:var(--dark4); border-radius:6px; padding:0.75rem; text-align:center">
+          <!-- เปลี่ยนจาก emoji เป็นรูปจริง -->
+          <img src="https://via.placeholder.com/80/1a1a1a/ffc107?text=👕" alt="Shirt" style="width:80px; height:80px; object-fit:cover; border-radius:4px">
+          <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.2rem; color:var(--gold)">${{ '%.2f'|format(m.shirt) }}</div>
+          <div style="font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px">Shirt</div>
+        </div>
+        <div style="background:var(--dark4); border-radius:6px; padding:0.75rem; text-align:center">
+          <!-- เปลี่ยนจาก emoji เป็นรูปจริง -->
+          <img src="https://via.placeholder.com/80/1a1a1a/e53935?text=🪖" alt="Helmet" style="width:80px; height:80px; object-fit:cover; border-radius:4px">
+          <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.2rem; color:var(--red)">${{ '%.2f'|format(m.helmet) }}</div>
+          <div style="font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px">Helmet</div>
+        </div>
+        <div style="background:var(--dark4); border-radius:6px; padding:0.75rem; text-align:center">
+          <!-- เปลี่ยนจาก emoji เป็นรูปจริง -->
+          <img src="https://via.placeholder.com/80/1a1a1a/ffc107?text=🧢" alt="Cap" style="width:80px; height:80px; object-fit:cover; border-radius:4px">
+          <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.2rem; color:var(--gold)">${{ '%.2f'|format(m.cap) }}</div>
+          <div style="font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px">Cap</div>
+        </div>
+      </div>
+      <div class="actions-row">
+        <a href="/merchandise/edit/{{ m.id }}" class="btn btn-edit btn-sm">แก้ไข</a>
+        <a href="/merchandise/delete/{{ m.id }}" class="btn btn-delete btn-sm" onclick="return confirm('ลบ?')">ลบ</a>
+      </div>
+    </div>
+    {% else %}
+    <p style="color:var(--muted)">ยังไม่มีข้อมูล merchandise</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

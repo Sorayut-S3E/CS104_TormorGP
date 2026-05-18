@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Track — MotoGP Universe{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="section-header">
+    <h1>🏟️ {{ action }} Track</h1>
+    <div class="bar"></div>
+    <a href="/tracks" class="btn btn-edit">← กลับ</a>
+  </div>
+  <div class="form-card">
+    <form method="POST">
+      <div class="form-group">
+        <label>Track Name</label>
+        <input type="text" name="track" value="{{ data.track if data else '' }}" placeholder="เช่น Mugello Circuit" required>
+      </div>
+      <div class="form-group">
+        <label>Country</label>
+        <input type="text" name="country" value="{{ data.country if data else '' }}" placeholder="เช่น Italy">
+      </div>
+      <div class="form-group">
+        <label>Highlight</label>
+        <textarea name="highlight" placeholder="จุดเด่นของสนาม...">{{ data.highlight if data else '' }}</textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">💾 บันทึก</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

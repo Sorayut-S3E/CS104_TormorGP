@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Tracks — MotoGP Universe{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="section-header">
+    <h1>🏟️ Tracks</h1>
+    <div class="bar"></div>
+    <a href="/tracks/add" class="btn btn-primary">+ เพิ่มสนาม</a>
+  </div>
+
+  <div class="cards-grid">
+    {% for t in tracks %}
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:0.75rem">
+        <div>
+          <div class="card-title">{{ t.track }}</div>
+          <div class="card-meta">🌍 {{ t.country }}</div>
+        </div>
+        <span class="badge badge-red" style="white-space:nowrap">{{ t.country }}</span>
+      </div>
+      <div style="font-size:0.85rem; color:var(--muted); line-height:1.5; margin-bottom:1rem">
+        📝 {{ t.highlight }}
+      </div>
+      <div class="actions-row">
+        <a href="/tracks/edit/{{ t.id }}" class="btn btn-edit btn-sm">แก้ไข</a>
+        <a href="/tracks/delete/{{ t.id }}" class="btn btn-delete btn-sm" onclick="return confirm('ลบสนาม {{ t.track }}?')">ลบ</a>
+      </div>
+    </div>
+    {% else %}
+    <p style="color:var(--muted)">ยังไม่มีข้อมูลสนาม</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

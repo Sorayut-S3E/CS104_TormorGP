@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Calendar — MotoGP Universe{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="section-header">
+    <h1>📅 Race Calendar 2025</h1>
+    <div class="bar"></div>
+    <a href="/calendar/add" class="btn btn-primary">+ เพิ่มรายการ</a>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Round</th>
+          <th>Date</th>
+          <th>Track</th>
+          <th>Ticket Price</th>
+          <th>Riders</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in calendar %}
+        <tr>
+          <td><span class="badge" style="background:var(--dark4); color:var(--muted)">R{{ loop.index }}</span></td>
+          <td style="font-family:'Barlow Condensed',sans-serif; font-weight:700; color:var(--gold); font-size:1.05rem">{{ c.date }}</td>
+          <td style="font-weight:500">{{ c.track }}</td>
+          <td>
+            <span style="font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.1rem; color:var(--red)">${{ '%.0f'|format(c.ticket) }}</span>
+          </td>
+          <td style="color:var(--muted); font-size:0.85rem">{{ c.rider }}</td>
+          <td>
+            <div class="actions-row">
+              <a href="/calendar/edit/{{ c.id }}" class="btn btn-edit btn-sm">แก้ไข</a>
+              <a href="/calendar/delete/{{ c.id }}" class="btn btn-delete btn-sm" onclick="return confirm('ลบรายการนี้?')">ลบ</a>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align:center; color:var(--muted); padding:2rem">ยังไม่มีปฏิทินการแข่งขัน</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
