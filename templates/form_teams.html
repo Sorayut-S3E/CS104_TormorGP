@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Team — MotoGP Universe{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="section-header">
+    <h1>🏍️ {{ action }} Team</h1>
+    <div class="bar"></div>
+    <a href="/teams" class="btn btn-edit">← กลับ</a>
+  </div>
+  <div class="form-card">
+    <form method="POST">
+      <div class="form-group">
+        <label>Team Name</label>
+        <input type="text" name="team" value="{{ data.team if data else '' }}" placeholder="เช่น Ducati Lenovo Team" required>
+      </div>
+      <div class="form-group">
+        <label>Rider(s)</label>
+        <input type="text" name="rider" value="{{ data.rider if data else '' }}" placeholder="เช่น Bagnaia / Bastianini">
+      </div>
+      <div class="form-group">
+        <label>Owner</label>
+        <input type="text" name="owner" value="{{ data.owner if data else '' }}" placeholder="เช่น Gigi Dall'Igna">
+      </div>
+      <div class="form-group">
+        <label>Sponsor</label>
+        <input type="text" name="sponsor" value="{{ data.sponsor if data else '' }}" placeholder="เช่น Lenovo">
+      </div>
+      <div class="form-group">
+        <label>Highlight</label>
+        <textarea name="highlight" placeholder="จุดเด่นของทีม...">{{ data.highlight if data else '' }}</textarea>
+      </div>
+      <div class="form-group">
+        <label>Standing (อันดับ)</label>
+        <input type="number" name="standing" value="{{ data.standing if data else '' }}" min="1" placeholder="1">
+      </div>
+      <button type="submit" class="btn btn-primary">💾 บันทึก</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
