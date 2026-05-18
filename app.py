@@ -43,8 +43,13 @@ def init_db():
         coat REAL,
         shirt REAL,
         helmet REAL,
-        cap REAL
+        cap REAL,
+        image_url TEXT
     );
+
+    -- Add image_url column to existing merchandise table (migration)
+    -- SQLite ignores this if column already exists (wrapped via Python below)
+    
 
     CREATE TABLE IF NOT EXISTS calendar (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -94,20 +99,29 @@ def init_db():
         ]
         c.executemany("INSERT INTO tracks(id,track,highlight,country) VALUES(?,?,?,?)", tracks_data)
 
+    # Migration: add image columns if they don't exist yet
+    existing_cols = [row[1] for row in c.execute("PRAGMA table_info(merchandise)").fetchall()]
+    if 'image_url' not in existing_cols:
+        c.execute("ALTER TABLE merchandise ADD COLUMN image_url TEXT")
+    for col in ('coat_img', 'shirt_img', 'helmet_img', 'cap_img'):
+        if col not in existing_cols:
+            c.execute(f"ALTER TABLE merchandise ADD COLUMN {col} TEXT")
+
     if c.execute('SELECT COUNT(*) FROM merchandise').fetchone()[0] == 0:
         merch_data = [
-            (1,  4,  299.99, 89.99, 599.99, 39.99),
-            (2,  2,  249.99, 79.99, 549.99, 34.99),
-            (3,  3,  279.99, 84.99, 579.99, 37.99),
-            (4,  1,  259.99, 74.99, 559.99, 36.99),
-            (5,  5,  229.99, 69.99, 529.99, 32.99),
-            (6,  6,  219.99, 64.99, 499.99, 29.99),
-            (7,  7,  269.99, 82.99, 559.99, 36.99),
-            (8,  8,  259.99, 81.99, 539.99, 35.99),
-            (9,  9,  289.99, 86.99, 589.99, 38.99),
-            (10, 10, 254.99, 78.99, 544.99, 33.99),
+            # id, team_id, coat, shirt, helmet, cap, image_url
+            (1,  4,  299.99, 89.99, 599.99, 39.99, 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Ducati_logo.svg/320px-Ducati_logo.svg.png'),
+            (2,  2,  249.99, 79.99, 549.99, 34.99, 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Yamaha_Motor_logo.svg/320px-Yamaha_Motor_logo.svg.png'),
+            (3,  3,  279.99, 84.99, 579.99, 37.99, 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Honda_logo.svg/320px-Honda_logo.svg.png'),
+            (4,  1,  259.99, 74.99, 559.99, 36.99, 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Red_Bull_Racing_logo.svg/320px-Red_Bull_Racing_logo.svg.png'),
+            (5,  5,  229.99, 69.99, 529.99, 32.99, 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Aprilia-logo.svg/320px-Aprilia-logo.svg.png'),
+            (6,  6,  219.99, 64.99, 499.99, 29.99, 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Ducati_logo.svg/320px-Ducati_logo.svg.png'),
+            (7,  7,  269.99, 82.99, 559.99, 36.99, 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Aprilia_logo.svg/320px-Aprilia_logo.svg.png'),
+            (8,  8,  259.99, 81.99, 539.99, 35.99, 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Ducati_logo.svg/320px-Ducati_logo.svg.png'),
+            (9,  9,  289.99, 86.99, 589.99, 38.99, 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Ducati_logo.svg/320px-Ducati_logo.svg.png'),
+            (10, 10, 254.99, 78.99, 544.99, 33.99, 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Honda_logo.svg/320px-Honda_logo.svg.png'),
         ]
-        c.executemany("INSERT INTO merchandise(id,team_id,coat,shirt,helmet,cap) VALUES(?,?,?,?,?,?)", merch_data)
+        c.executemany("INSERT INTO merchandise(id,team_id,coat,shirt,helmet,cap,image_url) VALUES(?,?,?,?,?,?,?)", merch_data)
 
     if c.execute('SELECT COUNT(*) FROM calendar').fetchone()[0] == 0:
         calendar_data = [
@@ -235,7 +249,8 @@ def merchandise():
     conn = get_db()
     # JOIN merchandise → teams เพื่อดึงชื่อทีมผ่าน FK
     data = conn.execute('''
-        SELECT m.id, t.team, m.coat, m.shirt, m.helmet, m.cap, m.team_id
+        SELECT m.id, t.team, m.coat, m.shirt, m.helmet, m.cap, m.team_id, m.image_url,
+               m.coat_img, m.shirt_img, m.helmet_img, m.cap_img
         FROM merchandise m JOIN teams t ON m.team_id = t.id
         ORDER BY t.standing
     ''').fetchall()
@@ -248,9 +263,12 @@ def merchandise_add():
     conn = get_db()
     if request.method == 'POST':
         conn.execute(
-            'INSERT INTO merchandise (team_id,coat,shirt,helmet,cap) VALUES (?,?,?,?,?)',
+            'INSERT INTO merchandise (team_id,coat,shirt,helmet,cap,image_url,coat_img,shirt_img,helmet_img,cap_img) VALUES (?,?,?,?,?,?,?,?,?,?)',
             (request.form['team_id'], request.form['coat'], request.form['shirt'],
-             request.form['helmet'], request.form['cap'])
+             request.form['helmet'], request.form['cap'],
+             request.form.get('image_url', ''),
+             request.form.get('coat_img', ''), request.form.get('shirt_img', ''),
+             request.form.get('helmet_img', ''), request.form.get('cap_img', ''))
         )
         conn.commit(); conn.close()
         return redirect(url_for('merchandise'))
@@ -264,9 +282,12 @@ def merchandise_edit(id):
     conn = get_db()
     if request.method == 'POST':
         conn.execute(
-            'UPDATE merchandise SET team_id=?,coat=?,shirt=?,helmet=?,cap=? WHERE id=?',
+            'UPDATE merchandise SET team_id=?,coat=?,shirt=?,helmet=?,cap=?,image_url=?,coat_img=?,shirt_img=?,helmet_img=?,cap_img=? WHERE id=?',
             (request.form['team_id'], request.form['coat'], request.form['shirt'],
-             request.form['helmet'], request.form['cap'], id)
+             request.form['helmet'], request.form['cap'],
+             request.form.get('image_url', ''),
+             request.form.get('coat_img', ''), request.form.get('shirt_img', ''),
+             request.form.get('helmet_img', ''), request.form.get('cap_img', ''), id)
         )
         conn.commit(); conn.close()
         return redirect(url_for('merchandise'))

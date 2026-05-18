@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Merchandise — MotoGP Universe{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="section-header">
+    <h1>🛍️ {{ action }} Merchandise</h1>
+    <div class="bar"></div>
+    <a href="/merchandise" class="btn btn-edit">← กลับ</a>
+  </div>
+  <div class="form-card">
+    <form method="POST">
+      <div class="form-group">
+        <label>Team</label>
+        <select name="team_id" required>
+          <option value="">-- เลือกทีม --</option>
+          {% for t in teams %}
+          <option value="{{ t.id }}" {% if data and data.team_id == t.id %}selected{% endif %}>{{ t.team }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>🧥 ราคา Coat (USD)</label>
+        <input type="number" step="0.01" name="coat" value="{{ data.coat if data else '' }}" placeholder="299.99">
+      </div>
+      <div class="form-group">
+        <label>👕 ราคา Shirt (USD)</label>
+        <input type="number" step="0.01" name="shirt" value="{{ data.shirt if data else '' }}" placeholder="89.99">
+      </div>
+      <div class="form-group">
+        <label>🪖 ราคา Helmet (USD)</label>
+        <input type="number" step="0.01" name="helmet" value="{{ data.helmet if data else '' }}" placeholder="599.99">
+      </div>
+      <div class="form-group">
+        <label>🧢 ราคา Cap (USD)</label>
+        <input type="number" step="0.01" name="cap" value="{{ data.cap if data else '' }}" placeholder="39.99">
+      </div>
+      <div class="form-group">
+        <label>🖼️ Team Image URL (โลโก้ทีม)</label>
+        <input type="url" name="image_url" value="{{ data.image_url if data else '' }}" placeholder="https://example.com/team-logo.png">
+        {% if data and data.image_url %}
+        <div style="margin-top:0.5rem">
+          <img src="{{ data.image_url }}" alt="preview" style="height:60px; object-fit:contain; background:var(--dark4); border-radius:6px; padding:6px">
+        </div>
+        {% endif %}
+      </div>
+
+      <div style="border-top:1px solid var(--border); margin:1.5rem 0 1.25rem; padding-top:1.25rem">
+        <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.85rem; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:1rem">
+          🖼️ รูปสินค้า (ถ้าไม่กรอกจะใช้รูป default)
+        </div>
+
+        {% set items = [
+          ('coat_img',   '🧥', 'Coat',   data.coat_img   if data else ''),
+          ('shirt_img',  '👕', 'Shirt',  data.shirt_img  if data else ''),
+          ('helmet_img', '🪖', 'Helmet', data.helmet_img if data else ''),
+          ('cap_img',    '🧢', 'Cap',    data.cap_img    if data else '')
+        ] %}
+        {% for field, icon, label, val in items %}
+        <div class="form-group" style="display:grid; grid-template-columns:1fr auto; gap:0.75rem; align-items:start">
+          <div>
+            <label>{{ icon }} {{ label }} Image URL</label>
+            <input type="url" name="{{ field }}" value="{{ val or '' }}" placeholder="https://example.com/{{ label|lower }}.jpg">
+          </div>
+          <div style="padding-top:1.6rem">
+            <img src="{{ val or '' }}" alt="{{ label }}"
+                 style="width:52px; height:52px; object-fit:cover; border-radius:6px; background:var(--dark4); {{ 'display:none' if not val else '' }}"
+                 onerror="this.style.display='none'" onload="this.style.display='block'">
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <button type="submit" class="btn btn-primary">💾 บันทึก</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

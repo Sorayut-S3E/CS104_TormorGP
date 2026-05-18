@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Merchandise — MotoGP Universe{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="section-header">
+    <h1>🛍️ Merchandise</h1>
+    <div class="bar"></div>
+    <a href="/merchandise/add" class="btn btn-primary">+ เพิ่มสินค้า</a>
+  </div>
+
+  <div class="cards-grid">
+    {% for m in merch %}
+    <div class="card">
+      <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem">
+        {% if m.image_url %}
+        <img src="{{ m.image_url }}" alt="{{ m.team }}"
+             style="width:56px; height:56px; object-fit:contain; background:var(--dark4); border-radius:8px; padding:6px">
+        {% else %}
+        <div style="width:56px; height:56px; background:var(--dark4); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.8rem">🏍️</div>
+        {% endif %}
+        <div class="card-title">{{ m.team }}</div>
+      </div>
+      <div style="margin: 0.5rem 0 1rem; display:grid; grid-template-columns:1fr 1fr; gap:0.75rem">
+        <div style="background:var(--dark4); border-radius:6px; padding:0.75rem; text-align:center">
+          <img src="{{ m.coat_img or 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=120&h=120&fit=crop&auto=format' }}" alt="Coat"
+               style="width:80px; height:80px; object-fit:cover; border-radius:6px; margin-bottom:6px; display:block; margin-left:auto; margin-right:auto">
+          <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.2rem; color:var(--gold)">${{ '%.2f'|format(m.coat) }}</div>
+          <div style="font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px">Coat</div>
+        </div>
+        <div style="background:var(--dark4); border-radius:6px; padding:0.75rem; text-align:center">
+          <img src="{{ m.shirt_img or 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=120&h=120&fit=crop&auto=format' }}" alt="Shirt"
+               style="width:80px; height:80px; object-fit:cover; border-radius:6px; margin-bottom:6px; display:block; margin-left:auto; margin-right:auto">
+          <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.2rem; color:var(--gold)">${{ '%.2f'|format(m.shirt) }}</div>
+          <div style="font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px">Shirt</div>
+        </div>
+        <div style="background:var(--dark4); border-radius:6px; padding:0.75rem; text-align:center">
+          <img src="{{ m.helmet_img or 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=120&h=120&fit=crop&auto=format' }}" alt="Helmet"
+               style="width:80px; height:80px; object-fit:cover; border-radius:6px; margin-bottom:6px; display:block; margin-left:auto; margin-right:auto">
+          <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.2rem; color:var(--red)">${{ '%.2f'|format(m.helmet) }}</div>
+          <div style="font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px">Helmet</div>
+        </div>
+        <div style="background:var(--dark4); border-radius:6px; padding:0.75rem; text-align:center">
+          <img src="{{ m.cap_img or 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=120&h=120&fit=crop&auto=format' }}" alt="Cap"
+               style="width:80px; height:80px; object-fit:cover; border-radius:6px; margin-bottom:6px; display:block; margin-left:auto; margin-right:auto">
+          <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.2rem; color:var(--gold)">${{ '%.2f'|format(m.cap) }}</div>
+          <div style="font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px">Cap</div>
+        </div>
+      </div>
+      <div class="actions-row">
+        <a href="/merchandise/edit/{{ m.id }}" class="btn btn-edit btn-sm">แก้ไข</a>
+        <a href="/merchandise/delete/{{ m.id }}" class="btn btn-delete btn-sm" onclick="return confirm('ลบ?')">ลบ</a>
+      </div>
+    </div>
+    {% else %}
+    <p style="color:var(--muted)">ยังไม่มีข้อมูล merchandise</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
