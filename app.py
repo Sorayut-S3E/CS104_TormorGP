@@ -211,11 +211,11 @@ def teams_add():
         conn = get_db()
         new_standing = int(request.form['standing']) if request.form['standing'] else None
         if new_standing:
-            # ดัน standing ที่ชนกันขึ้นไปก่อน
-            conn.execute(
-                'UPDATE teams SET standing = standing + 1 WHERE standing >= ?',
-                (new_standing,)
-            )
+            exists = conn.execute('SELECT id FROM teams WHERE standing=?', (new_standing,)).fetchone()
+            if exists:
+                conn.close()
+                return render_template('form_teams.html', action='Add', data=request.form,
+                                       error=f'Standing {new_standing} ถูกใช้ไปแล้ว กรุณาเลือกอันดับอื่น')
         conn.execute(
             'INSERT INTO teams (team,rider,owner,sponsor,highlight,standing) VALUES (?,?,?,?,?,?)',
             (request.form['team'], request.form['rider'], request.form['owner'],
@@ -232,16 +232,11 @@ def teams_edit(id):
     if request.method == 'POST':
         new_standing = int(request.form['standing']) if request.form['standing'] else None
         if new_standing:
-            old = conn.execute('SELECT standing FROM teams WHERE id=?', (id,)).fetchone()
-            old_standing = old['standing'] if old else None
-            if old_standing != new_standing:
-                # ตั้ง standing เดิมเป็น NULL ก่อนเพื่อหลีกเลี่ยง UNIQUE conflict
-                conn.execute('UPDATE teams SET standing = NULL WHERE id=?', (id,))
-                # ดัน standing ที่ชนกันขึ้นไป
-                conn.execute(
-                    'UPDATE teams SET standing = standing + 1 WHERE standing >= ?',
-                    (new_standing,)
-                )
+            exists = conn.execute('SELECT id FROM teams WHERE standing=? AND id!=?', (new_standing, id)).fetchone()
+            if exists:
+                conn.close()
+                return render_template('form_teams.html', action='Edit', data=request.form,
+                                       error=f'Standing {new_standing} ถูกใช้ไปแล้ว กรุณาเลือกอันดับอื่น')
         conn.execute(
             'UPDATE teams SET team=?,rider=?,owner=?,sponsor=?,highlight=?,standing=? WHERE id=?',
             (request.form['team'], request.form['rider'], request.form['owner'],
