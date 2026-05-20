@@ -257,7 +257,14 @@ def teams_edit(id):
 @app.route('/teams/delete/<int:id>')
 def teams_delete(id):
     conn = get_db()
+    deleted = conn.execute('SELECT standing FROM teams WHERE id=?', (id,)).fetchone()
     conn.execute('DELETE FROM teams WHERE id=?', (id,))
+    if deleted and deleted['standing']:
+        # ดึงทีมที่ standing สูงกว่า แล้วเลื่อนขึ้นมา 1
+        conn.execute(
+            'UPDATE teams SET standing = standing - 1 WHERE standing > ?',
+            (deleted['standing'],)
+        )
     conn.commit(); conn.close()
     return redirect(url_for('teams'))
 
