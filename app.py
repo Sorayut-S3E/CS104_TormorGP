@@ -232,11 +232,16 @@ def teams_edit(id):
     if request.method == 'POST':
         new_standing = int(request.form['standing']) if request.form['standing'] else None
         if new_standing:
-            exists = conn.execute('SELECT id FROM teams WHERE standing=? AND id!=?', (new_standing, id)).fetchone()
-            if exists:
-                conn.close()
-                return render_template('form_teams.html', action='Edit', data=request.form,
-                                       error=f'Standing {new_standing} ถูกใช้ไปแล้ว กรุณาเลือกอันดับอื่น')
+            old = conn.execute('SELECT standing FROM teams WHERE id=?', (id,)).fetchone()
+            old_standing = old['standing'] if old else None
+            if old_standing != new_standing:
+                # ล้าง standing เดิมก่อนเพื่อหลีกเลี่ยง UNIQUE conflict ตอน shift
+                conn.execute('UPDATE teams SET standing = NULL WHERE id=?', (id,))
+                # ดันทีมอื่นที่ชนลงมา 1 อันดับ
+                conn.execute(
+                    'UPDATE teams SET standing = standing + 1 WHERE standing >= ?',
+                    (new_standing,)
+                )
         conn.execute(
             'UPDATE teams SET team=?,rider=?,owner=?,sponsor=?,highlight=?,standing=? WHERE id=?',
             (request.form['team'], request.form['rider'], request.form['owner'],
