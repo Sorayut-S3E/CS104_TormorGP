@@ -27,7 +27,7 @@ def init_db():
         owner TEXT,
         sponsor TEXT,
         highlight TEXT,
-        standing INTEGER
+        standing INTEGER UNIQUE
     );
 
     CREATE TABLE IF NOT EXISTS tracks (
@@ -209,10 +209,17 @@ def teams():
 def teams_add():
     if request.method == 'POST':
         conn = get_db()
+        new_standing = int(request.form['standing']) if request.form['standing'] else None
+        if new_standing:
+            # ดัน standing ที่ชนกันขึ้นไปก่อน
+            conn.execute(
+                'UPDATE teams SET standing = standing + 1 WHERE standing >= ?',
+                (new_standing,)
+            )
         conn.execute(
             'INSERT INTO teams (team,rider,owner,sponsor,highlight,standing) VALUES (?,?,?,?,?,?)',
             (request.form['team'], request.form['rider'], request.form['owner'],
-             request.form['sponsor'], request.form['highlight'], request.form['standing'])
+             request.form['sponsor'], request.form['highlight'], new_standing)
         )
         conn.commit(); conn.close()
         return redirect(url_for('teams'))
@@ -223,10 +230,22 @@ def teams_add():
 def teams_edit(id):
     conn = get_db()
     if request.method == 'POST':
+        new_standing = int(request.form['standing']) if request.form['standing'] else None
+        if new_standing:
+            old = conn.execute('SELECT standing FROM teams WHERE id=?', (id,)).fetchone()
+            old_standing = old['standing'] if old else None
+            if old_standing != new_standing:
+                # ตั้ง standing เดิมเป็น NULL ก่อนเพื่อหลีกเลี่ยง UNIQUE conflict
+                conn.execute('UPDATE teams SET standing = NULL WHERE id=?', (id,))
+                # ดัน standing ที่ชนกันขึ้นไป
+                conn.execute(
+                    'UPDATE teams SET standing = standing + 1 WHERE standing >= ?',
+                    (new_standing,)
+                )
         conn.execute(
             'UPDATE teams SET team=?,rider=?,owner=?,sponsor=?,highlight=?,standing=? WHERE id=?',
             (request.form['team'], request.form['rider'], request.form['owner'],
-             request.form['sponsor'], request.form['highlight'], request.form['standing'], id)
+             request.form['sponsor'], request.form['highlight'], new_standing, id)
         )
         conn.commit(); conn.close()
         return redirect(url_for('teams'))
