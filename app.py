@@ -13,6 +13,22 @@ def get_db():
     return conn
 
 
+from contextlib import contextmanager
+
+@contextmanager
+def db_write():
+    """Context manager ที่ commit อัตโนมัติ หรือ rollback ถ้าเกิด error"""
+    conn = get_db()
+    try:
+        yield conn
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
+
+
 def init_db():
     conn = get_db()
     c = conn.cursor()
@@ -208,47 +224,44 @@ def teams():
 @app.route('/teams/add', methods=['GET', 'POST'])
 def teams_add():
     if request.method == 'POST':
-        conn = get_db()
         new_standing = int(request.form['standing']) if request.form['standing'] else None
         if new_standing:
+            conn = get_db()
             exists = conn.execute('SELECT id FROM teams WHERE standing=?', (new_standing,)).fetchone()
+            conn.close()
             if exists:
-                conn.close()
                 return render_template('form_teams.html', action='Add', data=request.form,
                                        error=f'Standing {new_standing} ถูกใช้ไปแล้ว กรุณาเลือกอันดับอื่น')
-        conn.execute(
-            'INSERT INTO teams (team,rider,owner,sponsor,highlight,standing) VALUES (?,?,?,?,?,?)',
-            (request.form['team'], request.form['rider'], request.form['owner'],
-             request.form['sponsor'], request.form['highlight'], new_standing)
-        )
-        conn.commit(); conn.close()
+        with db_write() as conn:
+            conn.execute(
+                'INSERT INTO teams (team,rider,owner,sponsor,highlight,standing) VALUES (?,?,?,?,?,?)',
+                (request.form['team'], request.form['rider'], request.form['owner'],
+                 request.form['sponsor'], request.form['highlight'], new_standing)
+            )
         return redirect(url_for('teams'))
-    return render_template('form_teams.html', action='Add', data=None)
+    return render_template('form_teams.html', action='Add', data=None, error=None)
 
 
 @app.route('/teams/edit/<int:id>', methods=['GET', 'POST'])
 def teams_edit(id):
-    conn = get_db()
     if request.method == 'POST':
         new_standing = int(request.form['standing']) if request.form['standing'] else None
-        if new_standing:
-            old = conn.execute('SELECT standing FROM teams WHERE id=?', (id,)).fetchone()
-            old_standing = old['standing'] if old else None
-            if old_standing != new_standing:
-                # ล้าง standing เดิมก่อนเพื่อหลีกเลี่ยง UNIQUE conflict ตอน shift
-                conn.execute('UPDATE teams SET standing = NULL WHERE id=?', (id,))
-                # ดันทีมอื่นที่ชนลงมา 1 อันดับ
-                conn.execute(
-                    'UPDATE teams SET standing = standing + 1 WHERE standing >= ?',
-                    (new_standing,)
-                )
-        conn.execute(
-            'UPDATE teams SET team=?,rider=?,owner=?,sponsor=?,highlight=?,standing=? WHERE id=?',
-            (request.form['team'], request.form['rider'], request.form['owner'],
-             request.form['sponsor'], request.form['highlight'], new_standing, id)
-        )
-        conn.commit(); conn.close()
+        with db_write() as conn:
+            if new_standing:
+                old = conn.execute('SELECT standing FROM teams WHERE id=?', (id,)).fetchone()
+                if old and old['standing'] != new_standing:
+                    conn.execute('UPDATE teams SET standing = NULL WHERE id=?', (id,))
+                    conn.execute(
+                        'UPDATE teams SET standing = standing + 1 WHERE standing >= ?',
+                        (new_standing,)
+                    )
+            conn.execute(
+                'UPDATE teams SET team=?,rider=?,owner=?,sponsor=?,highlight=?,standing=? WHERE id=?',
+                (request.form['team'], request.form['rider'], request.form['owner'],
+                 request.form['sponsor'], request.form['highlight'], new_standing, id)
+            )
         return redirect(url_for('teams'))
+    conn = get_db()
     data = conn.execute('SELECT * FROM teams WHERE id=?', (id,)).fetchone()
     conn.close()
     return render_template('form_teams.html', action='Edit', data=data)
@@ -256,16 +269,14 @@ def teams_edit(id):
 
 @app.route('/teams/delete/<int:id>')
 def teams_delete(id):
-    conn = get_db()
-    deleted = conn.execute('SELECT standing FROM teams WHERE id=?', (id,)).fetchone()
-    conn.execute('DELETE FROM teams WHERE id=?', (id,))
-    if deleted and deleted['standing']:
-        # ดึงทีมที่ standing สูงกว่า แล้วเลื่อนขึ้นมา 1
-        conn.execute(
-            'UPDATE teams SET standing = standing - 1 WHERE standing > ?',
-            (deleted['standing'],)
-        )
-    conn.commit(); conn.close()
+    with db_write() as conn:
+        deleted = conn.execute('SELECT standing FROM teams WHERE id=?', (id,)).fetchone()
+        conn.execute('DELETE FROM teams WHERE id=?', (id,))
+        if deleted and deleted['standing']:
+            conn.execute(
+                'UPDATE teams SET standing = standing - 1 WHERE standing > ?',
+                (deleted['standing'],)
+            )
     return redirect(url_for('teams'))
 
 
