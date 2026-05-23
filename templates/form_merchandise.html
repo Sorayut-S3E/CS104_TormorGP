@@ -36,11 +36,10 @@
       </div>
       <div class="form-group">
         <label>🖼️ Team Image URL (โลโก้ทีม)</label>
-        {% set team_img = data['image_url'] if data and data['image_url'] else '' %}
-        <input type="url" name="image_url" value="{{ team_img }}" placeholder="https://example.com/team-logo.png">
-        {% if team_img %}
+        <input type="url" name="image_url" value="{{ data.image_url if data else '' }}" placeholder="https://example.com/team-logo.png">
+        {% if data and data.image_url %}
         <div style="margin-top:0.5rem">
-          <img src="{{ team_img }}" alt="preview" style="height:60px; object-fit:contain; background:var(--dark4); border-radius:6px; padding:6px">
+          <img src="{{ data.image_url }}" alt="preview" style="height:60px; object-fit:contain; background:var(--dark4); border-radius:6px; padding:6px">
         </div>
         {% endif %}
       </div>
@@ -51,20 +50,19 @@
         </div>
 
         {% set items = [
-          ('coat_img',   '🧥', 'Coat'),
-          ('shirt_img',  '👕', 'Shirt'),
-          ('helmet_img', '🪖', 'Helmet'),
-          ('cap_img',    '🧢', 'Cap')
+          ('coat_img',   '🧥', 'Coat',   data.coat_img   if data else ''),
+          ('shirt_img',  '👕', 'Shirt',  data.shirt_img  if data else ''),
+          ('helmet_img', '🪖', 'Helmet', data.helmet_img if data else ''),
+          ('cap_img',    '🧢', 'Cap',    data.cap_img    if data else '')
         ] %}
-        {% for field, icon, label in items %}
-        {% set val = data[field] if data and data[field] else '' %}
+        {% for field, icon, label, val in items %}
         <div class="form-group" style="display:grid; grid-template-columns:1fr auto; gap:0.75rem; align-items:start">
           <div>
             <label>{{ icon }} {{ label }} Image URL</label>
-            <input type="url" name="{{ field }}" value="{{ val }}" placeholder="https://example.com/{{ label|lower }}.jpg">
+            <input type="url" name="{{ field }}" value="{{ val or '' }}" placeholder="https://example.com/{{ label|lower }}.jpg">
           </div>
           <div style="padding-top:1.6rem">
-            <img src="{{ val }}" alt="{{ label }}"
+            <img src="{{ val or '' }}" alt="{{ label }}"
                  style="width:52px; height:52px; object-fit:cover; border-radius:6px; background:var(--dark4); {{ 'display:none' if not val else '' }}"
                  onerror="this.style.display='none'" onload="this.style.display='block'">
           </div>

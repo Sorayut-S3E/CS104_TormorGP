@@ -8,11 +8,6 @@
     <a href="/teams" class="btn btn-edit">← กลับ</a>
   </div>
   <div class="form-card">
-    {% if error %}
-    <div style="background:#3A1A1A; border:1px solid var(--red); border-radius:6px; padding:0.75rem 1rem; margin-bottom:1.25rem; color:#FF7070; font-size:0.9rem;">
-      ⚠️ {{ error }}
-    </div>
-    {% endif %}
     <form method="POST">
       <div class="form-group">
         <label>Team Name</label>
